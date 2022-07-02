@@ -1,7 +1,40 @@
 import React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Result from "./Result";
-import { useRatesData } from "./useRatesData";
+import axios from "axios";
+
+const useRatesData = () => {
+  const [ratesStore, setRatesData] = useState({
+    state: "loading",
+  });
+  console.log("ratesStore", ratesStore);
+
+  useEffect(() => {
+    const getRates = async () => {
+      try {
+        const response = await axios.get(
+          `https://api.exchangerate.host/latest?base=USD&symbols=USD,CHF,EUR,RUB,CZK,SEK,CNY,UAH,JPY`
+        );
+        console.log(response.data);
+
+        const { rates, date } = await response.data;
+
+        setRatesData({
+          state: "success",
+          rates,
+          date,
+        });
+      } catch {
+        setRatesData({
+          state: "error",
+        });
+      }
+    };
+    setTimeout(getRates, 2000);
+  }, []);
+
+  return ratesStore;
+};
 
 const Converter = () => {
   const [result, setResult] = useState();
@@ -9,7 +42,7 @@ const Converter = () => {
 
   const calculateResult = (currency, amount) => {
     const rate = ratesData.rates[currency];
-
+    console.log("rate", rate);
     setResult({
       sourceAmount: +amount,
       targetAmount: amount * rate,
@@ -60,121 +93,80 @@ const Converter = () => {
         ) : (
           <div className="flex flex-row mb-9 gap-9 items-center">
             <div className="flex-1">
-              <label
-                className="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-400"
-                htmlFor="text"
+              <div className="mt-1 relative rounded-md shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <span className="text-gray-500 sm:text-sm">$</span>
+                </div>
+                <input
+                  type="text"
+                  value={amount}
+                  name="price"
+                  onChange={({ target }) => setAmount(target.value)}
+                  min="1"
+                  max="10000000"
+                  id="price"
+                  className="
+                pr-3 focus:outline-none focus:ring-1 focus:ring-green-500 
+                focus:border-green-500 w-full 
+                border-2 rounded-sm min-h-50 pl-3 py-2
+                z-10 mt-1  bg-white shadow-lg max-h-56 text-base 
+                ring-1ring-black ring-opacity-5 overflow-auto sm:text-sm
+                  block  pl-7 pr-12 "
+                  placeholder="0.00"
+                />
+                <div className="absolute inset-y-0 right-0 flex items-center">
+                  <label htmlFor="currency" className="sr-only">
+                    Currency
+                  </label>
+                  <select
+                    id="currency"
+                    name="currency"
+                    value={currency}
+                    onChange={({ target }) => setCurrency(target.value)}
+                    className="focus:ring-indigo-500 focus:border-indigo-500 h-full py-0 pl-2 pr-6 border-transparent bg-transparent text-gray-500 sm:text-sm rounded-md"
+                  >
+                    {Object.keys(ratesData.rates).map((currency) => (
+                      <option key={currency} value={currency.base}>
+                        {currency}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div className="flex-1">
+              <button
+                type="submit"
+                className="mr-7 inline-flex justify-center py-3 px-5 border border-transparent
+                       shadow-sm text-md font-bold rounded-md text-white
+                       bg-green-300 hover:bg-green-500"
               >
-                Amount
-              </label>
-              <input
-                type="number"
-                className=" pr-3 focus:outline-none focus:ring-1 focus:ring-green-500 
-                         focus:border-green-500 w-full 
-                           border-2 rounded-sm min-h-50 pl-3 py-2
-                           z-10 mt-1  bg-white shadow-lg max-h-56 text-base 
-                           ring-1ring-black ring-opacity-5 overflow-auto sm:text-sm"
-                value={amount}
-                onChange={({ target }) => setAmount(target.value)}
-                step="any"
-                min="1"
-                max="10000000"
-                size="lg"
-                placeholder="Enter amount USD"
-              />
+                Convert
+              </button>
+              <button
+                type="reset"
+                onClick={onReset}
+                className="resetButton inline-flex justify-center py-3 px-5 border border-transparent
+                     shadow-sm text-md font-bold rounded-md text-white bg-red-300
+                     hover:bg-red-600"
+              >
+                Reset
+              </button>
             </div>
 
             <div className="flex-1">
-              <label
-                htmlFor="text"
-                className="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-400"
-              >
-                Сonversion currency
-              </label>
-              <select
-                id="countries"
-                className="border-2 focus:ring-1 focus:ring-green-500 
-                         focus:border-green-500 z-10 mt-1 w-full bg-white
-                           shadow-lg max-h-56 rounded-md py-3 text-base ring-1 
-                         ring-black ring-opacity-5 overflow-auto focus:outline-none
-                           sm:text-sm"
-                value={currency}
-                onChange={({ target }) => setCurrency(target.value)}
-              >
-                {Object.keys(ratesData.rates).map((currency) => (
-                  <option key={currency} value={currency.base}>
-                    {currency}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div
-              onClick={() => swapConversion()}
-              className="border-2 border-blue-100 rounded-full mt-8 p-4 
-                         cursor-pointer hover:border-green-300"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 17 17"
-                aria-hidden="true"
-                className="w-4 h-4 text-green-500 miscellany___StyledIconSwap-sc-1r08bla-1 fZJuOo"
-              >
-                <path
-                  fill="currentColor"
-                  fillRule="evenodd"
-                  d="M11.726 1.273l2.387 2.394H.667V5h13.446l-2.386 2.393.94.94 4-4-4-4-.94.94zM.666 12.333l4 4 .94-.94L3.22 13h13.447v-1.333H3.22l2.386-2.394-.94-.94-4 4z"
-                  clipRule="evenodd"
-                ></path>
-              </svg>
-            </div>
-
-            <div className="flex-1">
-              <label
-                htmlFor="text"
-                className="block mb-2 text-sm font-medium 
-                         text-gray-900 dark:text-gray-400"
-              >
-                Сonversion currency
-              </label>
-              <select
-                id="countries"
-                className="border-2 focus:ring-1 focus:ring-green-500 
-                         focus:border-green-500 z-10 mt-1 w-full 
-                         bg-white shadow-lg max-h-56 rounded-md py-3 
-                           text-base ring-1 ring-black ring-opacity-5 
-                           overflow-auto focus:outline-none sm:text-sm"
-                value={currencyTwo}
-                onChange={({ target }) => setCurrencyTwo(target.value)}
-              >
-                {Object.keys(ratesData.rates).map((currencyTwo) => (
-                  <option key={currencyTwo} value={currencyTwo}>
-                    {currencyTwo}
-                  </option>
-                ))}
-              </select>
+              <div>
+                <h1
+                  className="border-2 border-green-500 w-full 
+           rounded-sm min-h-50 pl-3 pr-10 py-2 font-semibold"
+                >
+                  You receive:{" "}
+                  {<Result result={result} calculateResult={calculateResult} />}
+                </h1>
+              </div>
             </div>
           </div>
         )}
-        <div className="">
-          <button
-            type="submit"
-            className="mr-6 inline-flex justify-center py-3 px-5 border border-transparent
-                       shadow-sm text-md font-bold rounded-md text-white
-                       bg-green-300 hover:bg-green-500"
-          >
-            Convert
-          </button>
-          <button
-            type="reset"
-            onClick={onReset}
-            className="mr-6 inline-flex justify-center py-3 px-5 border border-transparent
-                       shadow-sm text-md font-bold rounded-md text-white bg-red-300
-                       hover:bg-red-600"
-          >
-            Reset
-          </button>
-        </div>
       </form>
       <div className="flex justify-between mt-10 items-center">
         <div>
@@ -193,15 +185,6 @@ const Converter = () => {
             </svg>
             &nbsp;Be careful keep your money under your pillow.
           </p>
-        </div>
-        <div>
-          <h1
-            className="border-2 border-green-500 w-full 
-         rounded-sm min-h-50 pl-3 pr-10 py-2"
-          >
-            You receive:{" "}
-            {<Result result={result} calculateResult={calculateResult} />}
-          </h1>
         </div>
       </div>
     </section>
