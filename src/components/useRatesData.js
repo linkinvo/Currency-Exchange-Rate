@@ -11,7 +11,7 @@ export const useRatesData = () => {
       const getRates = async () => {
         try {
           const response = await axios.get(
-            `https://api.exchangerate.host/latest?base=USD&symbols=USD,CHF,EUR,RUB,CZK,SEK,CNY,UAH,JPY`
+            `https://api.exchangerate.host/latest?base=UAH&symbols=USD,CHF,EUR,RUB,CZK,SEK,CNY,UAH,JPY`
             );
             console.log(response.data);
 

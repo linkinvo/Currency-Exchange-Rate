@@ -51,13 +51,9 @@ const Converter = () => {
   };
 
   const [currency, setCurrency] = useState("EUR");
-  const [currencyTwo, setCurrencyTwo] = useState("UAH");
   const [amount, setAmount] = useState("");
 
-  function swapConversion() {
-    setCurrency(currencyTwo);
-    setCurrencyTwo(currency);
-  }
+
 
   const onSubmit = (event) => {
     event.preventDefault();
