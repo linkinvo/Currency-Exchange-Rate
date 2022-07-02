@@ -146,7 +146,7 @@ const Converter = () => {
               <button
                 type="reset"
                 onClick={onReset}
-                className="resetButton inline-flex justify-center py-3 px-5 border border-transparent
+                className="inline-flex justify-center py-3 px-5 border border-transparent
                      shadow-sm text-md font-bold rounded-md text-white bg-red-300
                      hover:bg-red-600"
               >
